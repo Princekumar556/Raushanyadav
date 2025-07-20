@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happy Birthday</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+      text-align: center;
+      padding: 40px 20px;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #FEC198;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .star {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #FF3;
+      box-shadow: 0 0 15px white;
+      border-radius: 50%;
+      animation: fall linear infinite, twinkle 1.5s infinite ease-in-out;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-10px);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(600px);
+        opacity: 1;
+      }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #e91e6;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+      animation: zoomPulse 2s infinite;
+    }
+
+    @keyframes zoomPulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    .photo-frame {
+      border: 5px solid #FEE1A2;
+      border-radius: 50%;
+      overflow: hidden;
+      width: 200px;
+      height: 200px;
+      margin: auto;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .message {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 2;
+    }
+
+    button {
+      background-color: #365;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      animation: bounce 1.5s infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    button:hover {
+      background-color: #c2185b;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <canvas id="fireworks"></canvas>
+
+  <div class="container">
+    <div class="stars" id="stars"></div>
+
+    <h1>🎉Happy Birthday <span id="name">Raushan🎉</span>🎂</h1>
+    
+    <div class="photo-frame">
+      <img src="Image.jpg" alt="Birthday Person" />
+    </div>
+    
+    <p class="message">
+      Happy Birthday, Raushan! Wishing you endless happiness, success, and good health today and always. Have a fantastic year ahead!
+    </p>
+
+    <button onclick="toggleMusic()">🎵 Play Birthday Song</button>
+    <audio id="song" src="Music.mp3"></audio>
+  </div>
+
+  <script>
+    const audio = document.getElementById("song");
+    let isConfettiRunning = false;
+    let isFireworksRunning = false;
+    let fireworkInterval;
+
+    function toggleMusic() {
+      if (audio.paused) {
+        audio.play();
+        startConfetti();
+        startFireworks();
+      } else {
+        audio.pause();
+        stopConfetti();
+        stopFireworks();
+      }
+    }
+
+    // CONFETTI
+    const confettiCanvas = document.getElementById('confetti');
+    const ctx = confettiCanvas.getContext('2d');
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+
+    const confetti = [];
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    for (let i = 0; i < 150; i++) {
+      confetti.push({
+        x: random(0, confettiCanvas.width),
+        y: random(-confettiCanvas.height, 0),
+        r: random(5, 10),
+        d: random(1, 5),
+        color: `hsl(${random(0, 360)}, 100%, 60%)`,
+        tilt: random(-10, 10),
+        tiltAngleIncremental: random(0.05, 0.1),
+        tiltAngle: 0
+      });
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confetti.forEach((conf) => {
+        ctx.beginPath();
+        ctx.lineWidth = conf.r;
+        ctx.strokeStyle = conf.color;
+        ctx.moveTo(conf.x + conf.tilt + conf.r / 2, conf.y);
+        ctx.lineTo(conf.x + conf.tilt, conf.y + conf.tilt + conf.r);
+        ctx.stroke();
+      });
+      updateConfetti();
+    }
+
+    function updateConfetti() {
+      confetti.forEach((conf) => {
+        conf.tiltAngle += conf.tiltAngleIncremental;
+        conf.y += (Math.cos(conf.d) + 3 + conf.r / 2) / 2;
+        conf.tilt = Math.sin(conf.tiltAngle - conf.r / 3) * 15;
+
+        if (conf.y > confettiCanvas.height) {
+          conf.y = -20;
+          conf.x = Math.random() * confettiCanvas.width;
+        }
+      });
+    }
+
+    function animateConfetti() {
+      if (isConfettiRunning) {
+        drawConfetti();
+        requestAnimationFrame(animateConfetti);
+      }
+    }
+
+    function startConfetti() {
+      isConfettiRunning = true;
+      animateConfetti();
+    }
+
+    function stopConfetti() {
+      isConfettiRunning = false;
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    }
+
+    // STARS
+    const starContainer = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.top = `${Math.random() * -100}px`;
+      star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+      star.style.opacity = Math.random();
+      starContainer.appendChild(star);
+    }
+
+    // FIREWORKS
+    const fireCanvas = document.getElementById("fireworks");
+    const fireCtx = fireCanvas.getContext("2d");
+    fireCanvas.width = window.innerWidth;
+    fireCanvas.height = window.innerHeight;
+
+    const fireworks = [];
+
+    function createFirework() {
+      const x = Math.random() * fireCanvas.width;
+      const y = Math.random() * fireCanvas.height / 2;
+      const particles = [];
+
+      for (let i = 0; i < 50; i++) {
+        const angle = (Math.PI * 2 * i) / 50;
+        const speed = Math.random() * 4 + 1;
+        particles.push({
+          x,
+          y,
+          dx: Math.cos(angle) * speed,
+          dy: Math.sin(angle) * speed,
+          life: 100,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`
+        });
+      }
+
+      fireworks.push(...particles);
+    }
+
+    function drawFireworks() {
+      fireCtx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+      fireworks.forEach((p, index) => {
+        fireCtx.beginPath();
+        fireCtx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        fireCtx.fillStyle = p.color;
+        fireCtx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        p.life--;
+        if (p.life <= 0) fireworks.splice(index, 1);
+      });
+    }
+
+    function animateFireworks() {
+      if (isFireworksRunning) {
+        drawFireworks();
+        requestAnimationFrame(animateFireworks);
+      }
+    }
+
+    function startFireworks() {
+      isFireworksRunning = true;
+      fireworkInterval = setInterval(() => {
+        if (isFireworksRunning) createFirework();
+      }, 1000);
+      animateFireworks();
+    }
+
+    function stopFireworks() {
+      isFireworksRunning = false;
+      clearInterval(fireworkInterval);
+      fireCtx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+    }
+  </script>
+</body>
+</html>
